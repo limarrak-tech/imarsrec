@@ -1,20 +1,39 @@
-name: Build APK
-on: [push, workflow_dispatch] # Se lance à chaque envoi ou manuellement
+name: Build React Native APK
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch: # Pour lancer le build manuellement
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Setup Java
+      - name: Checkout du code
+        uses: actions/checkout@v4
+
+      - name: Installation de Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18' # Ou 20 selon votre projet
+
+      - name: Installation des dépendances (NPM)
+        run: npm install
+        # Si vous utilisez yarn, remplacez par : yarn install
+
+      - name: Configuration de Java (Nécessaire pour Android)
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '17'
-      - name: Build with Gradle
-        run: chmod +x gradlew && ./gradlew assembleDebug
-      - name: Upload APK
+
+      - name: Build de l'APK (Debug)
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: Récupérer l'APK généré
         uses: actions/upload-artifact@v4
         with:
-          name: my-app-apk
-          path: app/build/outputs/apk/debug/*.apk
+          name: app-debug-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
